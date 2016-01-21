@@ -5,7 +5,6 @@ using System.ComponentModel;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using System.Threading.Tasks;
-using System.Reactive.Linq;
 
 namespace LanguageExt
 {
@@ -98,32 +97,6 @@ namespace LanguageExt
             await (IsSome
                 ? Some(Value)
                 : None());
-
-        /// <summary>
-        /// Match the two states of the Option
-        /// The Some can return an IObservable R and the None an R.  The result is wrapped in an IObservable R
-        /// </summary>
-        /// <typeparam name="R">Return type</typeparam>
-        /// <param name="Some">Some handler</param>
-        /// <param name="None">None handler</param>
-        /// <returns>A promise to return an stream of Rs</returns>
-        public IObservable<R> MatchObservableUnsafe<R>(Func<T, IObservable<R>> Some, Func<R> None) =>
-            IsSome
-                ? Some(Value)
-                : Observable.Return(None());
-
-        /// <summary>
-        /// Match the two states of the Option
-        /// The Some and None can return an IObservable R
-        /// </summary>
-        /// <typeparam name="R">Return type</typeparam>
-        /// <param name="Some">Some handler</param>
-        /// <param name="None">None handler</param>
-        /// <returns>A promise to return an stream of Rs</returns>
-        public IObservable<R> MatchObservableUnsafe<R>(Func<T, IObservable<R>> Some, Func<IObservable<R>> None) =>
-            IsSome
-                ? Some(Value)
-                : None();
 
         public R MatchUntyped<R>(Func<object, R> Some, Func<R> None) =>
             IsSome
@@ -606,33 +579,4 @@ public static class __OptionUnsafeExt
         self.IsSome
             ? Some(await self.Value)
             : None();
-
-    /// <summary>
-    /// Match the two states of the OptionUnsafe&lt;IObservable&lt;T&gt;&gt;
-    /// 
-    ///     If Some then the observable stream is mapped with Some (until the subscription ends)
-    ///     If None the a single value observable is returned with the None result in
-    /// 
-    /// </summary>
-    /// <typeparam name="R">Return type</typeparam>
-    /// <param name="Some">Some handler</param>
-    /// <param name="None">None handler</param>
-    /// <returns>A stream of Rs</returns>
-    public static IObservable<R> MatchObservable<T, R>(this OptionUnsafe<IObservable<T>> self, Func<T, R> Some, Func<R> None) =>
-        self.IsSome
-            ? self.Value.Select(Some)
-            : Observable.Return(None());
-
-    /// <summary>
-    /// Match the two states of the IObservable&lt;OptionUnsafe&lt;T&gt;&gt;
-    /// 
-    ///     Matches a stream of options
-    /// 
-    /// </summary>
-    /// <typeparam name="R">Return type</typeparam>
-    /// <param name="Some">Some handler</param>
-    /// <param name="None">None handler</param>
-    /// <returns>A stream of Rs</returns>
-    public static IObservable<R> MatchObservable<T, R>(this IObservable<OptionUnsafe<T>> self, Func<T, R> Some, Func<R> None) =>
-        self.Select(opt => matchUnsafe(opt, Some, None));
 }

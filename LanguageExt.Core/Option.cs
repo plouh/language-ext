@@ -6,7 +6,6 @@ using System.ComponentModel;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using System.Threading.Tasks;
-using System.Reactive.Linq;
 
 namespace LanguageExt
 {
@@ -137,30 +136,6 @@ namespace LanguageExt
             IsSome
                 ? CheckNullSomeReturn(await Some(Value))
                 : CheckNullNoneReturn(await None());
-
-        /// <summary>
-        /// Match the two states of the Option and return an observable stream of non-null Rs.
-        /// </summary>
-        /// <typeparam name="R">Return type</typeparam>
-        /// <param name="Some">Some handler.  Must not return null.</param>
-        /// <param name="None">None handler.  Must not return null.</param>
-        /// <returns>A stream of non-null Rs</returns>
-        public IObservable<R> MatchObservable<R>(Func<T, IObservable<R>> Some, Func<R> None) =>
-            IsSome
-                ? Some(Value).Select(CheckNullSomeReturn)
-                : Observable.Return(CheckNullNoneReturn(None()));
-
-        /// <summary>
-        /// Match the two states of the Option and return an observable stream of non-null Rs.
-        /// </summary>
-        /// <typeparam name="R">Return type</typeparam>
-        /// <param name="Some">Some handler.  Must not return null.</param>
-        /// <param name="None">None handler.  Must not return null.</param>
-        /// <returns>A stream of non-null Rs</returns>
-        public IObservable<R> MatchObservable<R>(Func<T, IObservable<R>> Some, Func<IObservable<R>> None) =>
-            IsSome
-                ? Some(Value).Select(CheckNullSomeReturn)
-                : None().Select(CheckNullNoneReturn);
 
         /// <summary>
         /// Match the two states of the Option and return an R, or null.
@@ -723,24 +698,4 @@ public static class __OptionExt
             ? Option<Task<T>>.CheckNullSomeReturn(Some(await self.Value))
             : Option<Task<T>>.CheckNullNoneReturn(None());
 
-    /// <summary>
-    /// Match the two states of the Option and return a stream of non-null Rs.
-    /// </summary>
-    /// <param name="Some">Some handler.  Cannot return null.</param>
-    /// <param name="None">None handler.  Cannot return null.</param>
-    /// <returns>A stream of non-null Rs</returns>
-    public static IObservable<R> MatchObservable<T, R>(this Option<IObservable<T>> self, Func<T, R> Some, Func<R> None) =>
-        self.IsSome
-            ? self.Value.Select(Some).Select(Option<R>.CheckNullSomeReturn)
-            : Observable.Return(Option<R>.CheckNullNoneReturn(None()));
-
-    /// <summary>
-    /// Match the two states of the IObservable&lt;Option&lt;T&gt;&gt; and return a stream of non-null Rs.
-    /// </summary>
-    /// <typeparam name="R">Return type</typeparam>
-    /// <param name="Some">Some handler.  Cannot return null.</param>
-    /// <param name="None">None handler.  Cannot return null.</param>
-    /// <returns>A stream of non-null Rs</returns>
-    public static IObservable<R> MatchObservable<T, R>(this IObservable<Option<T>> self, Func<T, R> Some, Func<R> None) =>
-        self.Select(opt => match(opt, Some, None));
 }
